@@ -5,6 +5,7 @@ require 'optim'
 
 require 'loadcaffe'
 
+--------------------------------------------------------------------------------
 
 local cmd = torch.CmdLine()
 
@@ -14,6 +15,8 @@ cmd:option('-style_image', 'examples/inputs/seated-nude.jpg',
 cmd:option('-style_blend_weights', 'nil')
 cmd:option('-content_image', 'examples/inputs/tubingen.jpg',
            'Content target image')
+cmd:option('-init_image', 'examples/inputs/tubingen.jpg',
+           'Init image')
 cmd:option('-image_size', 512, 'Maximum height / width of generated image')
 cmd:option('-gpu', 0, 'Zero-indexed ID of the GPU to use; for CPU mode set -gpu = -1')
 
@@ -34,7 +37,6 @@ cmd:option('-output_image', 'out.png')
 
 -- Other options
 cmd:option('-style_scale', 1.0)
-cmd:option('-original_colors', 0)
 cmd:option('-pooling', 'max', 'max|avg')
 cmd:option('-proto_file', 'models/VGG_ILSVRC_19_layers_deploy.prototxt')
 cmd:option('-model_file', 'models/VGG_ILSVRC_19_layers.caffemodel')
@@ -67,7 +69,7 @@ local function main(params)
     end
     cudnn.SpatialConvolution.accGradParameters = nn.SpatialConvolutionMM.accGradParameters -- ie: nop
   end
-  
+
   local loadcaffe_backend = params.backend
   if params.backend == 'clnn' then loadcaffe_backend = 'nn' end
   local cnn = loadcaffe.load(params.proto_file, params.model_file, loadcaffe_backend):float()
@@ -78,11 +80,15 @@ local function main(params)
       cnn:cl()
     end
   end
-  
+
   local content_image = image.load(params.content_image, 3)
   content_image = image.scale(content_image, params.image_size, 'bilinear')
   local content_image_caffe = preprocess(content_image):float()
-  
+
+  local init_image = image.load(params.init_image, 3)
+  init_image = image.scale(init_image, params.image_size, 'bilinear')
+  local init_image_caffe = preprocess(init_image):float()
+
   local style_size = math.ceil(params.style_scale * params.image_size)
   local style_image_list = params.style_image:split(',')
   local style_images_caffe = {}
@@ -115,7 +121,7 @@ local function main(params)
   for i = 1, #style_blend_weights do
     style_blend_weights[i] = style_blend_weights[i] / style_blend_sum
   end
-  
+
 
   if params.gpu >= 0 then
     if params.backend ~= 'clnn' then
@@ -130,7 +136,7 @@ local function main(params)
       end
     end
   end
-  
+
   local content_layers = params.content_layers:split(",")
   local style_layers = params.style_layers:split(",")
 
@@ -238,7 +244,7 @@ local function main(params)
     end
   end
   collectgarbage()
-  
+
   -- Initialize the image
   if params.seed >= 0 then
     torch.manualSeed(params.seed)
@@ -247,7 +253,7 @@ local function main(params)
   if params.init == 'random' then
     img = torch.randn(content_image:size()):float():mul(0.001)
   elseif params.init == 'image' then
-    img = content_image_caffe:clone():float()
+    img = init_image_caffe:clone():float()
   else
     error('Invalid init type')
   end
@@ -258,7 +264,7 @@ local function main(params)
       img = img:cl()
     end
   end
-  
+
   -- Run it through the network once to get the proper size for the gradient
   -- All the gradients will come from the extra loss modules, so we just pass
   -- zeros into the top of the net on the backward pass.
@@ -304,12 +310,6 @@ local function main(params)
       if t == params.num_iterations then
         filename = params.output_image
       end
-
-      -- Maybe perform postprocessing for color-independent style transfer
-      if params.original_colors == 1 then
-        disp = original_colors(content_image, disp)
-      end
-
       image.save(filename, disp)
     end
   end
@@ -350,7 +350,7 @@ local function main(params)
     end
   end
 end
-  
+
 
 function build_filename(output_image, iteration)
   local ext = paths.extname(output_image)
@@ -381,15 +381,6 @@ function deprocess(img)
   local perm = torch.LongTensor{3, 2, 1}
   img = img:index(1, perm):div(256.0)
   return img
-end
-
-
--- Combine the Y channel of the generated image and the UV channels of the
--- content image to perform color-independent style transfer.
-function original_colors(content, generated)
-  local generated_y = image.rgb2yuv(generated)[{{1, 1}}]
-  local content_uv = image.rgb2yuv(content)[{{2, 3}}]
-  return image.yuv2rgb(torch.cat(generated_y, content_uv, 1))
 end
 
 
@@ -450,7 +441,7 @@ function StyleLoss:__init(strength, target, normalize)
   self.strength = strength
   self.target = target
   self.loss = 0
-  
+
   self.gram = GramMatrix()
   self.G = nil
   self.crit = nn.MSECriterion()

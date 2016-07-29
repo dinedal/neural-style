@@ -6,7 +6,7 @@ Video support via video_conv.rb is provided, and an example of the smoothing tec
 
 The original video is [here](https://github.com/dinedal/neural-style/blob/master/examples/inputs/IMG_1273.MOV?raw=true)
 
-In the style of [The Starry Night](https://en.wikipedia.org/wiki/The_Starry_Night) with the naive frame by frame translations is [here](https://github.com/dinedal/neural-style/blob/master/out.mp4?raw=true)
+In the style of [The Starry Night](https://en.wikipedia.org/wiki/The_Starry_Night) with the naive frame by frame translations is [here](https://github.com/dinedal/neural-style/blob/master/out.mp4?raw=true). *WARNING* this is quite jarring and what this project attempts to avoid.
 
 With the smoothing technique provided by the project is [here](https://github.com/dinedal/neural-style/blob/master/out_smooth.mp4?raw=true).
 

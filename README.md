@@ -1,7 +1,24 @@
-# neural-style
+# neural-style (with video support)
 
-This is a torch implementation of the paper [A Neural Algorithm of Artistic Style](http://arxiv.org/abs/1508.06576)
-by Leon A. Gatys, Alexander S. Ecker, and Matthias Bethge.
+This is a torch implementation of the paper [A Neural Algorithm of Artistic Style](http://arxiv.org/abs/1508.06576) by Leon A. Gatys, Alexander S. Ecker, and Matthias Bethge, and tweaked by @dinedal to support styling video in an artistic manner.
+
+Video support via video_conv.rb is provided, and an example of the smoothing technique is provided as well.
+
+The original video is [here](https://raw.githubusercontent.com/jcjohnson/neural-style/master/examples/inputs/IMG_1273.MOV)
+
+In the style of [The Starry Night](https://en.wikipedia.org/wiki/The_Starry_Night) with the naive frame by frame translations is [here](https://raw.githubusercontent.com/jcjohnson/neural-style/master/out.mp4)
+
+With the smoothing technique provided by the project is [here](https://raw.githubusercontent.com/jcjohnson/neural-style/master/out_smooth.mp4).
+
+Using the new video_conv.rb is easy, just perform the following:
+
+```bash
+ruby video_conv.rb input.mov style.png
+```
+
+You must have ffmpeg installed with the proper codecs for your input video and it must be on $PATH
+
+The rest of the readme is from the original project.
 
 The paper presents an algorithm for combining the content of one image with the style of another image using
 convolutional neural networks. Here's an example that maps the artistic style of
@@ -235,7 +252,7 @@ If you are running on a GPU, you can also try running with `-backend cudnn` to r
 
 **Solution:** Update `torch.paths` package to the latest version: `luarocks install paths`
 
-**Problem:** NIN Imagenet model is not giving good results. 
+**Problem:** NIN Imagenet model is not giving good results.
 
 **Solution:** Make sure the correct `-proto_file` is selected. Also make sure the correct parameters for `-content_layers` and `-style_layers` are set. (See OpenCL usage example above.)
 
@@ -254,7 +271,7 @@ These give good results, but can both use a lot of memory. You can reduce memory
   This should work in both CPU and GPU modes.
 * **Reduce image size**: If the above tricks are not enough, you can reduce the size of the generated image;
   pass the flag `-image_size 256` to generate an image at half the default size.
-  
+
 With the default settings, `neural-style` uses about 3.5GB of GPU memory on my system;
 switching to ADAM and cuDNN reduces the GPU memory footprint to about 1GB.
 
@@ -267,7 +284,7 @@ Here are some times for running 500 iterations with `-image_size=512` on a GTX T
 * `-backend cudnn -cudnn_autotune -optimizer lbfgs`: 58 seconds
 * `-backend cudnn -cudnn_autotune -optimizer adam`: 44 seconds
 * `-backend clnn -optimizer lbfgs`: 169 seconds
-* `-backend clnn -optimizer adam`: 106 seconds 
+* `-backend clnn -optimizer adam`: 106 seconds
 
 ## Implementation details
 Images are initialized with white noise and optimized using L-BFGS.

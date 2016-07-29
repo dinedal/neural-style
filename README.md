@@ -4,11 +4,11 @@ This is a torch implementation of the paper [A Neural Algorithm of Artistic Styl
 
 Video support via video_conv.rb is provided, and an example of the smoothing technique is provided as well.
 
-The original video is [here](https://raw.githubusercontent.com/jcjohnson/neural-style/master/examples/inputs/IMG_1273.MOV)
+The original video is [here](https://github.com/dinedal/neural-style/blob/master/examples/inputs/IMG_1273.MOV?raw=true)
 
-In the style of [The Starry Night](https://en.wikipedia.org/wiki/The_Starry_Night) with the naive frame by frame translations is [here](https://raw.githubusercontent.com/jcjohnson/neural-style/master/out.mp4)
+In the style of [The Starry Night](https://en.wikipedia.org/wiki/The_Starry_Night) with the naive frame by frame translations is [here](https://github.com/dinedal/neural-style/blob/master/out.mp4?raw=true)
 
-With the smoothing technique provided by the project is [here](https://raw.githubusercontent.com/jcjohnson/neural-style/master/out_smooth.mp4).
+With the smoothing technique provided by the project is [here](https://github.com/dinedal/neural-style/blob/master/out_smooth.mp4?raw=true).
 
 Using the new video_conv.rb is easy, just perform the following:
 
